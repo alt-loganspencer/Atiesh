@@ -3,6 +3,8 @@ set -euo pipefail
 
 # ============================================================================
 # /master dedupe by SHA-256
+# NOTE: To be run on a Linux system (Synology, UT2, etc) ONLY! Do NOT run from a Mac-based client.
+# If you need to run on/from a Mac, see <NEWNAMEPLACEHOLDER> in the Atiesh repo.
 #
 # MODES (mutually exclusive; exactly one required):
 #   --inventory  : Print "FULL_PATH/BASENAME <TAB> SHA256" for each file to STDOUT. (Echo to .tsv file of your choosing for future operations)
