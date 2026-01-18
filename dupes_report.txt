@@ -1,0 +1,37 @@
+=== Duplicate Groups Report ===
+Inventory: inventory_20260117_172923.tsv
+Ignored Apple garbage: 0
+Total duplicate groups: 4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HASH: 5476fdab670d6d20019599f21f602fcff8b123eb0e02a257b385c614f30e0753
+COUNT: 2 duplicates
+SIMPLEST: 06 Good Times Bad Times - Document One Rem-1.m4a
+
+  /data_n001/data/udata/real/_logan/master/0/06/06 Good Times Bad Times - Document One Rem-1.m4a
+  /data_n001/data/udata/real/_logan/master/0/06/06 Good Times Bad Times - Document One Remix.m4a
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HASH: 60a776e185016ece3ecb6d2bef654512c3d2029d452990877a5ca3994118f819
+COUNT: 2 duplicates
+SIMPLEST: 06 Fried.mp3
+
+  /data_n001/data/udata/real/_logan/master/0/06/06 Fried 1.mp3
+  /data_n001/data/udata/real/_logan/master/0/06/06 Fried.mp3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HASH: cf561cc3540caa92df4599bab8c32805b4fb93db4bfdb1f54e28e79510301f2f
+COUNT: 2 duplicates
+SIMPLEST: 06 Me And You.mp3
+
+  /data_n001/data/udata/real/_logan/master/0/06/06 Me And You 1.mp3
+  /data_n001/data/udata/real/_logan/master/0/06/06 Me And You.mp3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HASH: f3ec94419e229b438f5680e3deb6141b20e63b81699b969ab0d4f58337aa648d
+COUNT: 2 duplicates
+SIMPLEST: 06 Hold On.mp3
+
+  /data_n001/data/udata/real/_logan/master/0/06/06 Hold On 1.mp3
+  /data_n001/data/udata/real/_logan/master/0/06/06 Hold On.mp3
+
