@@ -199,6 +199,10 @@ trap 'rm -f "$TMP_SORT"' EXIT
 # Sort by hash (column 1)
 sort -k1,1 "$INPUT_TSV" > "$TMP_SORT" || { echo "ERROR: Sort failed" >&2; exit 1; }
 
+# Verify sorted file
+sorted_lines=$(wc -l < "$TMP_SORT")
+echo "Sorted $sorted_lines lines" >&2
+
 # Process groups
 current_hash=""
 group_paths=()
@@ -206,13 +210,93 @@ total_dupes=0
 total_kept=0
 lines_read=0
 lines_skipped=0
+limit_reached=false
 
 # Use awk for efficient TSV parsing with process substitution
-while IFS='§' read -r hash path; do
+# Using ASCII unit separator (0x1F) as delimiter - won't appear in filenames
+while IFS="|" read -r hash path; do
+  ((lines_read++)) || true
+
+  # Validate hash is exactly 64 hex characters
+  if [[ ! "$hash" =~ ^[a-f0-9]{64}$ ]]; then
+    ((lines_skipped++)) || true
+    continue
+  fi
+
+  # Validate path exists
+  if [[ -z "$path" ]]; then
+    ((lines_skipped++)) || true
+    continue
+  fi
+
+  # Skip Apple garbage
+  file_basename="${path##*/}"
+  if [[ "$file_basename" == ".DS_Store" || "$file_basename" == ._* ]]; then
+    ((lines_skipped++)) || true
+    continue
+  fi
+  
+  # Check if we're starting a new group
+  if [[ "$hash" != "$current_hash" ]]; then
+    # Process previous group if it exists
+    if [[ -n "$current_hash" && ${#group_paths[@]} -gt 0 ]]; then
+      if (( ${#group_paths[@]} > 1 )); then
+        total_dupes=$((total_dupes + ${#group_paths[@]} - 1))
+        ((total_kept++)) || true
+      fi
+      process_group "${group_paths[@]}"
+      
+      # Check limit AFTER processing
+      if [[ $GROUP_LIMIT -gt 0 && $GROUPS_PROCESSED -ge $GROUP_LIMIT ]]; then
+        echo >&2
+        echo "Limit reached: $GROUP_LIMIT groups processed" >&2
+        limit_reached=true
+        break
+      fi
+    fi
+    
+    # Start new group
+    current_hash="$hash"
+    group_paths=()
+  fi
+  
+  group_paths+=("$path")
+done < <(awk -F'\t' '{print $1 "\x1F" $2}' "$TMP_SORT")
+
+# Process final group (only if limit not reached)
+if [[ "$limit_reached" == "false" && -n "$current_hash" && ${#group_paths[@]} -gt 0 ]]; then
+  if (( ${#group_paths[@]} > 1 )); then
+    total_dupes=$((total_dupes + ${#group_paths[@]} - 1))
+    ((total_kept++)) || true
+  fi
+  process_group "${group_paths[@]}"
+fi
+
+# Final summary
+echo >&2
+echo "=== Summary ===" >&2
+echo "Lines read from TSV: $lines_read" >&2
+echo "Lines skipped: $lines_skipped" >&2
+echo "Duplicate groups processed: $GROUPS_PROCESSED" >&2
+echo "Files kept (originals): $total_kept" >&2
+echo "Files moved (duplicates): $total_dupes" >&2
+
+if [[ "$MODE" == "dry-run" ]]; then
+  echo >&2
+  echo "This was a DRY RUN - no files were moved." >&2
+  echo "Run with --execute to perform actual deduplication." >&2
+fi
+\x1F' read -r hash path; do
   ((lines_read++)) || true
   
-  # Validate and skip empty/invalid lines
-  if [[ -z "$hash" || -z "$path" ]]; then
+  # Validate hash is exactly 64 hex characters
+  if [[ ! "$hash" =~ ^[a-f0-9]{64}$ ]]; then
+    ((lines_skipped++)) || true
+    continue
+  fi
+  
+  # Validate path exists
+  if [[ -z "$path" ]]; then
     ((lines_skipped++)) || true
     continue
   fi
@@ -234,10 +318,11 @@ while IFS='§' read -r hash path; do
       fi
       process_group "${group_paths[@]}"
       
-      # Check limit
+      # Check limit AFTER processing
       if [[ $GROUP_LIMIT -gt 0 && $GROUPS_PROCESSED -ge $GROUP_LIMIT ]]; then
         echo >&2
         echo "Limit reached: $GROUP_LIMIT groups processed" >&2
+        limit_reached=true
         break
       fi
     fi
@@ -248,10 +333,10 @@ while IFS='§' read -r hash path; do
   fi
   
   group_paths+=("$path")
-done < <(awk -F'\t' '{print $1 "§" $2}' "$TMP_SORT")
+done < <(awk -F'\t' '{print $1 "|" $2}' "$TMP_SORT")
 
-# Process final group
-if [[ -n "$current_hash" && ${#group_paths[@]} -gt 0 ]]; then
+# Process final group (only if limit not reached)
+if [[ "$limit_reached" == "false" && -n "$current_hash" && ${#group_paths[@]} -gt 0 ]]; then
   if (( ${#group_paths[@]} > 1 )); then
     total_dupes=$((total_dupes + ${#group_paths[@]} - 1))
     ((total_kept++)) || true
